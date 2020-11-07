@@ -380,10 +380,32 @@ plot(dataset_final$BounceRates, dataset_final$ExitRates, xlab="Bounce Rates", yl
 ```
 ![*Relation between bounce rates and exit rates*](Rplot16.png)
 
+- There is a linear relationship visible between bounce rates and exit rates
+
 ```R
 plot(dataset_final$PageValues, dataset_final$Revenues, xlab="Page Values", ylab="Revenues")
 ```
 ![*Relation between page values and revenues*](Rplot17.png)
+
+- There is a linear relationship visible between values and revenue
+
+```R
+par(mfrow=c(1, 3))
+hist(dataset_final[dataset_final$Revenue == 2,]$ProductRelated, xlab = 'Pages', main = 'Product Related Pages')
+hist(dataset_final[dataset_final$Revenue == 2,]$Administrative, xlab = 'Pages', main = 'Administrative Pages')
+hist(dataset_final[dataset_final$Revenue == 2,]$Informational, xlab = 'Pages', main = 'Informational Pages')
+
+```
+![*Distribution in Pages when there's Revenue*](Rplot22.png)
+
+```R
+par(mfrow=c(1, 3))
+hist(dataset_final[dataset_final$Revenue == 1,]$ProductRelated, xlab = 'Pages', main = 'Product Related Pages')
+hist(dataset_final[dataset_final$Revenue == 1,]$Administrative, xlab = 'Pages', main = 'Administrative Pages')
+hist(dataset_final[dataset_final$Revenue == 1,]$Informational, xlab = 'Pages', main = 'Informational Pages')
+
+```
+![*Distribution in Pages when there's no Revenue*](Rplot23.png)
 
 # **Implementing the Solution**
 ### **K-Means Clustering**
@@ -397,6 +419,7 @@ normalize <- function(x){
 dataset_final.1 <- dataset_final
 ```
 ```R
+#normalizing our columns
 dataset_final.1$Administrative <- normalize(dataset_final.1$Administrative)
 dataset_final.1$Administrative_Duration <- normalize(dataset_final.1$Administrative_Duration)
 dataset_final.1$Informational <- normalize(dataset_final.1$Informational)
@@ -421,12 +444,14 @@ install.packages("factoextra")
 library(factoextra)
 ```
 ```R
+#creating a function for use in findig the optimal value for eps
 kmean_withinss <- function(k) {
     cluster <- kmeans(dataset_final.1, k)
     return (cluster$tot.withinss)
 }
 ```
 ```R
+#finding the optimal eps value using the elbow method
 wss <- sapply(2:20, kmean_withinss)
 elbow_method <-data.frame(2:20, wss)
 ```
@@ -443,16 +468,18 @@ ggplot(elbow_method, aes(x = X2.20, y = wss)) +
 - We are not going to use however, since we are using revenue to see the benefit of the customer groups. We will thus use 2 as our k since eveue has 2 classes.
 
 ```R
+#splitting the dataset
 dataset.new<- dataset_final.1[, c(1:17)]
 dataset.class<- dataset_final.1[, "Revenue"]
 ```
 ```R
+#performing the k-means clustering.
 result <- kmeans(dataset.new,2)
 ```
+**Verifying results**
 ```R
 View(result$size)
 ```
-
 ```R
 View(result$centers)
 ```
@@ -463,19 +490,29 @@ View(result$cluster)
     - 1 = 937
     - 2 = 11262
 ```R
+#plotting our clusters
 fviz_cluster(result, data = dataset.new[, 1:10], geom = "point", ellipse.type = "convex")
 ```
 ![](Rplot19.png)
 
+- Our k-means has not really classified the dataset well. This is because of several limitations.
+- Although k-means is useful when we know our k(number of classes), it has its limitaion. These are:
+    - Initial seeds have an impact on the final result
+    - It is sensitive to scaling
+    - The order of the data has an impact on the final results
+
 ### **Hiearchical Clustering**
 ```R
+#scaling
 scale_dataset <- scale(dataset_final.1)
 
 ```
 ```R
+#computing euclidean distance
 d <- dist(scale_dataset, method = "euclidean")
 ```
 ```R
+#hierarchical clustering using the Ward's method
 res.hc <- hclust(d, method = "ward.D2" )
 ```
 ```R
@@ -494,11 +531,13 @@ install.packages("dbscan")
 library("dbscan")
 ```
 ```R
+#finding the optimal eps value
 dbscan::kNNdistplot(dataset.new, k =  2)
 abline(h = 0.35, lty = 2)
 ```
 - Our line has fitted most well at the 0.35 mark and thus this is going to be our eps value.
 ```R
+#clustering using dbsacn
 db <- dbscan(dataset.new,eps=0.35,MinPts = 2)
 print(db)
 ```
@@ -507,8 +546,17 @@ hullplot(dataset.new,db$cluster)
 ```
 ![](Rplot21.png)
 
-
-# **Conclusion and Recommendation**
-
+- With an eps 0f 0.35 and 2 minimum points, we have achieved to create 54 clusters and there are 284 noise points.
 
 
+## **Conclusions**
+- We can conclude that most people visit the product related pages.
+- We can also sy that revenue gotten is found mostly from the first pages of every page category.
+ 
+## **Follow up Questions**
+
+1. Did we have the right data? Not totally. We have not achieved our goal of getting meanigful clusters and thus our data could have more fields for betterment of the analysis and grouping.
+
+2. Did we have the right question? Yes.
+
+3. Do we need to do anything else to answer the question? No.
