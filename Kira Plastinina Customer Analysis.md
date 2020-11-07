@@ -33,7 +33,7 @@ Below are the stages that I am going to follow:
 
 ### **Relevance of Data**
 
-The data provided is from the following site and it contains data 
+The data provided is relevant
 
 ## **Data Reading and Checking**
 
@@ -189,14 +189,18 @@ head(dataset_final)
 ## **Univariate Analysis**
 - We will start of with checking for the measures of central tendency and dispersion in the columns
 ```R
+#printing numerical summary for the dataset
 summary(dataset_final)
 ```
 - From our summary, we can see that product related pages have a very high duration compared to other pages and display a huge range. Admnistrative pages follow in the list and Informational come in last.
 ```R
+#creating a function for the mode calculation
 getmode <- function(v) {
    uniqv <- unique(v)
    uniqv[which.max(tabulate(match(v, uniqv)))]
 }
+
+#finding modes for the columns
 
 Administrative_mode <- getmode(dataset_final$Administrative)
 Administrative_mode
@@ -272,6 +276,7 @@ Revenue_mode
 - The website is mostly used during the weekdays.
 - Most users are returning visitors.
 
+### **Histograms for various columns**
 ```R
 hist(dataset_final$ProductRelated, main = "Distribution of Product Related Pages", xlab = "Pages")
 ```
@@ -311,6 +316,7 @@ hist(dataset_final$Administrative_Duration [dataset_final$VisitorType == 1], mai
 ![*Duration of New Visitors on Informational Pages*](Rplot7.png)
 ![*Duration of New Visitors on Administrative Pages*](Rplot8.png)
 
+- From the above plots, we can see that all new visitors spend most of the time on the first pages of each category.
 ```R
 hist(dataset_final$ProductRelated_Duration [dataset_final$VisitorType == 3], main = "Duration of Returning Visitors on Product Related Pages", xlab="Duration")
 ```
@@ -326,6 +332,7 @@ hist(dataset_final$Administrative_Duration [dataset_final$VisitorType == 3], mai
 ![*Duration of Returning Visitors on Informational Pages*](Rplot10.png)
 ![*Duration of Returning Visitors on Administrative Pages*](Rplot11.png)
 
+- From the above plots, we can see that all returning visitors spend most of the time on the first pages of each category.
 ```R
 hist(dataset_final$ProductRelated_Duration [dataset_final$VisitorType == 2], main = "Duration of Others on Product Related Pages", xlab="Duration")
 ```
@@ -341,9 +348,13 @@ hist(dataset_final$Administrative_Duration [dataset_final$VisitorType == 2], mai
 ![*Duration of Others on Informational Pages*](Rplot13.png)
 ![*Duration of Others on Administrative Pages*](Rplot14.png)
 
+- From the above plots, we can see that all people in the others category spend most of the time on the first pages of each category.
+
+- In general, all visitors to the website, regardless of their type, spend most time on the first few pages. Our graphs are all rightly skewed and this shows a hint of imbalancement in the data.
 
 ## **Bivariate & Multivariate Analysis**
 ```R
+#creating a correlation matrix
 res <- cor(dataset_final.final) 
 round(res, 2)
 ```
@@ -351,6 +362,7 @@ round(res, 2)
 install.packages("corrplot")
 require(corrplot)
 
+#plotting the correlation matrix for viewing.
 corrplot(res, method = "circle")
 ```
 ![*Correlation plot*](Rplot15.png)
@@ -485,7 +497,7 @@ library("dbscan")
 dbscan::kNNdistplot(dataset.new, k =  2)
 abline(h = 0.35, lty = 2)
 ```
-- Our line has fitted most well at the o.35 mark and thus this is going to be our eps value.
+- Our line has fitted most well at the 0.35 mark and thus this is going to be our eps value.
 ```R
 db <- dbscan(dataset.new,eps=0.35,MinPts = 2)
 print(db)
@@ -496,7 +508,7 @@ hullplot(dataset.new,db$cluster)
 ![](Rplot21.png)
 
 
-
+# **Conclusion and Recommendation**
 
 
 
