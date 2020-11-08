@@ -333,7 +333,7 @@ age <- dataset$age
 age_frequency <- table(age)
 barplot(age_frequency)
 ```
-![*Age Barplot.*](Rplot2.png)
+![*Age Barplot.*](Rplot2.1.png)
 
 - We can see that our graph is positively skewed. It also shows that most people who visit the site are in the age of 31 years.
 
@@ -343,7 +343,7 @@ country_frequency <- table(country)
 country_frequency
 barplot(country_frequency)
 ```
-![*Country Barplot.*](Rplot1.png)
+![*Country Barplot.*](Rplot1.1.png)
 
 The country plot is a bit squeezed but from viewing the countries the following are the top countries with the highest clicks of 9 and 8;
 
@@ -374,7 +374,7 @@ male <- dataset$male
 male_frequency <- table(male)
 barplot(male_frequency)
 ```
-![*Male Barplot.*](Rplot3.png)
+![*Male Barplot.*](Rplot3.1.png)
 
 - The most number of people who visited the site were not male.
 
@@ -383,7 +383,7 @@ clicked_on_ad <- dataset$clicked_on_ad
 clicked_on_ad_frequency <- table(clicked_on_ad)
 barplot(clicked_on_ad_frequency)
 ```
-![*Clicked Barplot.*](Rplot8.png)
+![*Clicked Barplot.*](Rplot8.1.png)
 
 ### **Bivariate Analysis**
 
@@ -397,7 +397,7 @@ In our bivariate analysis, we are going to look at several specific columns in o
 daily_time_spent_on_site <- dataset$daily_time_spent_on_site
 plot(daily_time_spent_on_site, age, xlab="Daily time spent on site", ylab="Age")
 ```
-![](Rplot4.png)
+![](Rplot4.1.png)
 
 - There doesn't seem to be a relation between the two fields
 
@@ -406,7 +406,7 @@ plot(daily_time_spent_on_site, age, xlab="Daily time spent on site", ylab="Age")
 area_income <- dataset$area_income
 plot(daily_time_spent_on_site, area_income, xlab="Daily time spent on site", ylab="Area income")
 ```
-![](Rplot5.png)
+![](Rplot5.1.png)
 
 - There doesn't seem to be a relation between the two fields
 
@@ -415,7 +415,7 @@ plot(daily_time_spent_on_site, area_income, xlab="Daily time spent on site", yla
 daily_internet_usage <- dataset$daily_internet_usage
 plot(daily_internet_usage, age, xlab="Daily internet usage", ylab="Age")
 ```
-![](Rplot6.png)
+![](Rplot6.1.png)
 
 - There doesn't seem to be a relation between the two fields
 
@@ -423,7 +423,7 @@ plot(daily_internet_usage, age, xlab="Daily internet usage", ylab="Age")
 ```R
 plot(daily_internet_usage, daily_time_spent_on_site, xlab="Daily internet usage", ylab="Daily time spent on site")
 ```
-![](Rplot7.png)
+![](Rplot7.1.png)
 
 - From the above plot, there seems to be a relationship between the two fields because there are two clusters
 formed on the plot. It seem the higher one spends time on the internet the higher time they spend on the site.
@@ -446,19 +446,21 @@ view(corr)
 ## **Supervised Learning Algorithms**
 
 After our eda analysis, we go on to perform supervised learning algorithms for prediction of whether a customer would click on the adverts or not.
-We will perform various learning techniques in order to achieve the best score.
+We will perform the SVM model and the kNN model to see their perfomances in order to achieve the best score.
 
 **Metric For Success**
+
 Our metric for success in this case is going to be a minimum accuracy score of 80%. With this achieved, our undertaking will be considered successful.
 
 **Steps to follow**
+
 We are going to go through the following steps.:
+
 1. Splitting the dataset
-2. Trying out different models.
-3. Refining the models.
-4. Measuring the best model.
-5. Conclusions and Recommendations.
-6. Follow up Questions.
+2. SVM Model.
+3. kNN Model
+4. Conclusions and Recommendations.
+5. Follow up Questions.
 
 ### **Models**
 
@@ -474,7 +476,7 @@ library("kernlab")
 ```
 ### **SVM Model**
 
-**Splitting the Dataset**
+
 
 ```R
 dataset$city[] <- as.factor(dataset$city)
@@ -488,58 +490,128 @@ dataset$country <- as.numeric(dataset$country)
 ```
 
 ```R
+#splitting the dataset
 intrain <- createDataPartition(y = dataset$clicked_on_ad, p= 0.7, list = FALSE)
 training <- dataset[intrain,]
 testing <- dataset[-intrain,]
 ```
 
 ```R
+#viewing the dimensions of our train and test sets.
 dim(training); 
 dim(testing);
 ```
 
 ```R
+#making our dependent variable a factor.
 training[["clicked_on_ad"]] = factor(training[["clicked_on_ad"]])
 ```
 
 ```R
-
+#controlling the computational overheads
 trctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
 
-svm_Linear <- train(clicked_on_ad ~., data = training, method = "svmLinear",
-trControl=trctrl,
-preProcess = c("center", "scale"),
-tuneLength = 10)
+#defining the model
+svm_Linear <- train(clicked_on_ad ~., data = training, method = "svmLinear", trControl=trctrl,preProcess = c("center", "scale"),tuneLength = 10)
 ```
 ```R
 svm_Linear
 ```
 
 ```R
+#predicting using the svm model
 svm_pred <- predict(svm_Linear, newdata = testing)
 svm_pred
 ```
 
 ```R
+#computing the confusion matrix
 confusionMatrix(table(svm_pred, testing$clicked_on_ad))
 ```
 
 Confusion Matrix:
 
             0     1
-       0    143   4
-       1    7     146
+       0    144   6
+       1    6     144
 
-Accuracy  : 96.33%
+Accuracy  : 96%
           
 
+### **kNN Model**
+
+```R
+library(class)
+```
+
+```R
+#creating a normalizing function
+normalize<- function(x){
+  return((x-min(x))/(max(x)-min(x)))
+}
+```
+
+```R
+#normalizing the columns
+dataset.1 <- dataset
+dataset.1[,1:8]<- normalize(dataset.1[,1:8])
+```
+
+```R
+#separating the class attribute
+class<- data.frame("clicked"=dataset.1$clicked_on_ad)
+names(class)= "clicked"
+```
+```R
+#removing the target column
+dataset.1 = subset(dataset.1, select = -c(clicked_on_ad))
+```
+
+```R
+
+set.seed(999)
+rnum<- sample(rep(1:1000))
+```
+```R
+#randomizing the datasets
+dataset.1<- dataset.1[rnum,]
+class<- as.data.frame(class[rnum,])
+```
+
+```R
+#splitting the dataset
+dataset.1.train<- dataset.1[1:700,]
+dataset.1.train.target<- class[1:700,]
+dataset.1.test<- dataset.1[701:1000,]
+dataset.1.test.target<- class[701:1000,]
+```
+
+```R
+#finding number of neighbors
+neighbors<- round(sqrt(nrow(dataset.1)))+1
+
+#number of neighbours is 33
+```
+
+```R
+#creating the model
+kNN_model<- knn(train = dataset.1.train,  test = dataset.1.test, cl=dataset.1.train.target, k=neighbors)
+```
+
+```R
+#calculating the accuracy
+mean(dataset.1.test.target== kNN_model)
+
+```
+
+Accuacy score : 71.66667%
 
 ### **Conclusions and Recommendations**
-We have managed to get an accuracy score of 96.33% which is quite good. We are going to settle with the SVM model since it has performed as per out metrics of success.
+We have managed to get an accuracy score of 96% in the SVM which is quite good. Our kNN model however has given us 72%. We are thus going to settle with the SVM model since it has performed as per out metrics of success.
 
 ### **Follow-up Questions**
 1. Did we have the right data? Yes
 
 2. Did we have the right question? Yes.
 
-3. Do we need to do anything else to answer the question? Yes.
+3. Do we need to do anything else to answer the question? We could try and play with the kNN parameters to see if it could get any better.
